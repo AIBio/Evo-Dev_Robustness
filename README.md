@@ -26,7 +26,8 @@ install.packages(
 ```
 
 ---
-## Load example data
+
+### Load example data
 
 ```r
 library(Seurat)
@@ -42,7 +43,7 @@ test <- readRDS("/home/yhw/bioinfo/project-mine/MultiOmics/R/RDS/Seurat_hs_embry
 
 ---
 
-## Step 1. Infer TF activity from transcriptome data with decoupleR
+### Step 1. Infer TF activity from transcriptome data with decoupleR
 
 ```r
 # Toy example
@@ -60,9 +61,9 @@ act.hindbrain <- Pipe.decoupleR(
 
 ---
 
-## Step 2. Load external TF activity matrices (optional)
+### Step 2. Load external TF activity matrices (optional)
 
-### 2.1 SCENIC regulon activity
+#### 2.1 SCENIC regulon activity
 
 ```r
 auc.mtx <- read.table(
@@ -76,7 +77,7 @@ colnames(auc.mtx) <- gsub("\\.", "-", colnames(auc.mtx))
 auc.mtx$Cell <- test$CellType.sub
 ```
 
-### 2.2 Signac/chromVAR motif activity
+#### 2.2 Signac/chromVAR motif activity
 
 ```r
 library(Signac)
@@ -155,7 +156,7 @@ signac <- GetTfAct(
 
 ---
 
-## Step 3. Run CellChat
+### Step 3. Run CellChat
 
 ```r
 library(CellChat)
@@ -179,11 +180,11 @@ ct <- Pipe.CellChat(
 
 ---
 
-## Step 4. Estimate pathway-specific downstream support
+### Step 4. Estimate pathway-specific downstream support
 
 Evo-Chat uses receiver-side TF activity to estimate pathway-specific support, which is then used to reweight CellChat interaction probabilities.
 
-### 4.1 Example: BMP/WNT support from SCENIC TF activity
+#### 4.1 Example: BMP/WNT support from SCENIC TF activity
 
 ```r
 scale.f1 <- CalNormFactor(
@@ -202,7 +203,7 @@ scale.f1 <- CalNormFactor(
 bmp_wnt_support <- scale.f1$Ensembl.Mean[levels(ct$Sample@idents)]
 ```
 
-### 4.2 Example: HH support from SCENIC TF activity
+#### 4.2 Example: HH support from SCENIC TF activity
 
 ```r
 scale.f2 <- CalNormFactor(
@@ -211,14 +212,14 @@ scale.f2 <- CalNormFactor(
   scale.data = TRUE,
   scale.method = c("range-01"),
   threshold = 0.5,
-  genelist = c("DBX1", "DBX2", "NKX6-2", "PAX6", "GLI1"),
+  genelist = c("DBX1", "DBX2", "GLI1", "GLI2"),
   group.info = as.character(test$CellType.sub)
 )
 
 hh_support <- scale.f2$Ensembl.Mean[levels(ct$Sample@idents)]
 ```
 
-### 4.3 Alternative: HH support from chromVAR motif activity
+#### 4.3 Alternative: HH support from chromVAR motif activity
 
 ```r
 scale.f2.chromvar <- CalNormFactor(
@@ -246,7 +247,7 @@ scale.fs <- list(
 
 ---
 
-## Step 5. Reweight CellChat interactions with Evo-Chat
+### Step 5. Reweight CellChat interactions with Evo-Chat
 
 ```r
 ct$Sample <- AdjustProPval(
@@ -262,7 +263,7 @@ This step recalibrates pathway-specific interaction probabilities and adjusted p
 
 ---
 
-## Step 6. Downstream analyses and visualization
+### Step 6. Downstream analyses and visualization
 
 ```r
 AfterChat::PathCentrality(
@@ -303,16 +304,7 @@ AfterChat::LRsInteraction(
 
 ---
 
-## Save and reload session
-
-```r
-save.image("/home/yhw/AfterChat_testing.RData")
-load("/home/yhw/AfterChat_testing.RData")
-```
-
----
-
-## Notes
+### Notes
 
 - Replace all local file paths with your own file locations.
 - `Pipe.decoupleR()`, `Pipe.CellChat()`, `CalNormFactor()`, and `AdjustProPval()` are core functions in the Evo-Chat workflow.
@@ -321,6 +313,6 @@ load("/home/yhw/AfterChat_testing.RData")
 
 ---
 
-## Citation
+### Citation
 
 If you use Evo-Chat in your work, please cite the associated manuscript when available.
